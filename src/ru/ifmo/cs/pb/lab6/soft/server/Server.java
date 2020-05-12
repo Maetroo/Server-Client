@@ -53,26 +53,32 @@ public final class Server {
 
     private Selector selector;
 
+    // port of this server
+    private static Integer PORT = 40004;
 
+    // collection
     private final Collection collection;
 
+    // address of the server
     private final SocketAddress address;
 
-
-    //set to reister clients
+    // set to reister clients
     private final Set<SocketChannel> channels;
 
-
-    //port of this server
-    private static final Integer PORT = 4004;
-
-    //to logging logs of server
+    // to logging logs of server
     private static final Logger logger =
             Logger.getLogger(Server.class.getSimpleName());
 
 
     //Constructor
     public Server(String[] args) {
+
+        if (args.length == 2) try {
+            PORT = Integer.parseInt(args[1]);
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid format of Port!");
+            System.exit(0);
+        }
 
         this.address = new InetSocketAddress(PORT);
         this.channels = new HashSet<SocketChannel>();
@@ -93,9 +99,8 @@ public final class Server {
 
         try {
             new Server(args).start();
-        } catch (IOException | ClassNotFoundException e) {
-            logger.error("                    | " +
-                         "an error occurred with server!");
+        } catch (IOException e) {
+            logger.error("- " + e.toString());
         }
     }
 
@@ -104,10 +109,9 @@ public final class Server {
      * clients and continues it.
      *
      * @throws              IOException if something wrong with input/output
-     * @throws              ClassNotFoundException if class does not exists
      */
 
-    private void start() throws IOException, ClassNotFoundException {
+    private void start() throws IOException {
 
         this.selector = Selector.open();
 
@@ -117,7 +121,7 @@ public final class Server {
         channel.configureBlocking(false);
         channel.register(this.selector, SelectionKey.OP_ACCEPT);
 
-        Server.logger.info("/###.###.#.##:##### | server is waiting to users...");
+        Server.logger.info("/###.###.###.###:##### - server is waiting to users...");
 
 
         while (true) { //start of infinity loop
@@ -162,7 +166,7 @@ public final class Server {
 
         this.channels.add(channel);
 
-        Server.logger.info(channel.socket().getRemoteSocketAddress() + " | new user joined.");
+        Server.logger.info(channel.socket().getRemoteSocketAddress() + " - new user joined.");
     }
 
     /**
@@ -171,11 +175,10 @@ public final class Server {
      *
      * @param key           a {@code Selection Key}
      * @throws              IOException if something wrong with input/output
-     * @throws              ClassNotFoundException if class does not exists
      */
 
     private void read(SelectionKey key)
-            throws IOException, ClassNotFoundException {
+            throws IOException {
 
         SocketChannel channel = (SocketChannel) key.channel();
 
@@ -185,19 +188,20 @@ public final class Server {
             byte[] bytes = new byte[channel.read(buffer)];
             System.arraycopy(buffer.array(), 0, bytes, 0, bytes.length);
 
+            Server.logger.info(channel.socket().getRemoteSocketAddress() + " - command is analysing...");
+
             AbstractCommand command = (AbstractCommand) Deserializer.deserialize(bytes);
 
             channel.write(ByteBuffer.wrap((command.execute(collection) + "\b").getBytes()));
-            channel.finishConnect();
 
             Server.logger.info(channel.socket().getRemoteSocketAddress() +
-                        " | successfully executed <" + command.getName().toUpperCase() + "> command!");
+                        " - successfully executed <" + command.getName().toUpperCase() + "> command!");
 
-        } catch (IOException e) {
+        } catch (Exception e) {
 
             this.channels.remove(channel);
 
-            Server.logger.warn(channel.socket().getRemoteSocketAddress() + " | user left.");
+            Server.logger.warn(channel.socket().getRemoteSocketAddress() + " - user left.");
 
             channel.close();
             key.cancel();

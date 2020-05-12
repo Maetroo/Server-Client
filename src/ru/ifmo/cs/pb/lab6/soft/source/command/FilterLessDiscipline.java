@@ -27,7 +27,7 @@ public class FilterLessDiscipline extends AbstractCommand {
     public FilterLessDiscipline() {
 
         this.name = "filter_less_than_discipline";
-        this.description = "display   elements ,  whose  'discipline'" +
+        this.description = "display   elements,   whose  'discipline'" +
                            "\n                                       " +
                            "field  value  is  less  than   the  given";
         this.needInput = true;

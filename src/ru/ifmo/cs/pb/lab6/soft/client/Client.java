@@ -22,9 +22,7 @@ import ru.ifmo.cs.pb.lab6.soft.source.Commander;
 import ru.ifmo.cs.pb.lab6.soft.source.command.*;
 import ru.ifmo.cs.pb.lab6.soft.source.objects.*;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
 
@@ -39,7 +37,7 @@ import java.util.Scanner;
 public final class Client {
 
     
-    private static Integer PORT = 4004;
+    private static Integer PORT = 40004;
     private static String HOST = "localhost";
 
     private static Socket socket;
@@ -53,7 +51,7 @@ public final class Client {
     /**
      * The {connect()} method tries to connect to any server with it
      * host and port. If host and port don't showed, it will use 
-     * \host:localhost and \port:4004.
+     * \host:localhost and \port:40004.
      * 
      * @param args              an array of Strings
      */
@@ -132,11 +130,17 @@ public final class Client {
 
             if (Script.scripts.size() != 0) {
 
+                if (Script.scripts.size() > Byte.MAX_VALUE) {
+                    System.out.println("Memory Overflow!");
+                    Script.scripts.clear();
+                    continue;
+                }
+
                 if (!Script.scripts.get(Script.scripts.size()-1).hasNextLine()) {
                     Script.scripts.remove(Script.scripts
                             .get(Script.scripts.size() - 1));
 
-                    System.out.println("Script succesfully DONE!");
+                    System.out.println("Script successfully DONE!");
                     continue;
                 }
 
@@ -163,7 +167,7 @@ public final class Client {
             if (args[0].toLowerCase().equals(new Script().getName())) {
                 Script script = new Script();
                 script.setArgs(args);
-                System.out.println(script.execute());
+                System.out.print(script.execute());
                 continue;
             }
 
@@ -278,8 +282,10 @@ public final class Client {
         try {
             while ((checker = in_stream.read()) != (int) '\b')
                 System.out.print((char) checker);
+            System.out.println();
         } catch (IOException e) {
-            System.out.println("\nConnection lost!");
+            e.printStackTrace();
+            System.out.print("\nConnection lost!");
         }
     }
 }
