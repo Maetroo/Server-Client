@@ -136,7 +136,7 @@ public final class Client {
                     Script.scripts.remove(Script.scripts
                             .get(Script.scripts.size() - 1));
 
-                    System.out.println("Script succesfully DONE!");
+                    System.out.println("Script successfully DONE!");
                     continue;
                 }
 
@@ -158,7 +158,7 @@ public final class Client {
                 online = false; continue;
             }
 
-            String[] args = input.split(" ");
+            String[] args = input.split("\\s+");
 
             if (args[0].toLowerCase().equals(new Script().getName())) {
                 Script script = new Script();
