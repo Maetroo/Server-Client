@@ -14,7 +14,7 @@
  *
  */
 
-package ru.ifmo.cs.pb.lab6.soft.server;
+package ru.ifmo.cs.pb.lab6.soft.source;
 
 
 

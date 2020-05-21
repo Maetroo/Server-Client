@@ -14,7 +14,7 @@
  *
  */
 
-package ru.ifmo.cs.pb.lab6.soft.client;
+package ru.ifmo.cs.pb.lab6.soft.source;
 
 
 
@@ -52,7 +52,9 @@ public final class Serializer {
         stream.writeObject(object);
 
         byte[] bytes = output.toByteArray();
+        output.flush();
         output.close();
+        stream.flush();
         stream.close();
 
         return bytes;

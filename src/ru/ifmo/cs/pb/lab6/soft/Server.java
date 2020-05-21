@@ -14,12 +14,15 @@
  *
  */
 
-package ru.ifmo.cs.pb.lab6.soft.server;
+package ru.ifmo.cs.pb.lab6.soft;
 
 
 
 import org.apache.log4j.Logger;
 import ru.ifmo.cs.pb.lab6.soft.source.Collection;
+import ru.ifmo.cs.pb.lab6.soft.source.Deserializer;
+import ru.ifmo.cs.pb.lab6.soft.source.Serializer;
+import ru.ifmo.cs.pb.lab6.soft.source.StringPack;
 import ru.ifmo.cs.pb.lab6.soft.source.command.AbstractCommand;
 import ru.ifmo.cs.pb.lab6.soft.source.command.Save;
 
@@ -59,12 +62,12 @@ public final class Server {
     private final SocketAddress address;
 
 
-    //set to reister clients
+    //set to register clients
     private final Set<SocketChannel> channels;
 
 
     //port of this server
-    private static final Integer PORT = 4004;
+    private static Integer PORT = 40004;
 
     //to logging logs of server
     private static final Logger logger =
@@ -73,6 +76,13 @@ public final class Server {
 
     //Constructor
     public Server(String[] args) {
+
+        if (args.length == 2) try {
+            PORT = Integer.parseInt(args[1]);
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid format of Port!");
+            System.exit(0);
+        }
 
         this.address = new InetSocketAddress(PORT);
         this.channels = new HashSet<SocketChannel>();
@@ -93,7 +103,7 @@ public final class Server {
 
         try {
             new Server(args).start();
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException e) {
             logger.error("                    | " +
                          "an error occurred with server!");
         }
@@ -104,10 +114,9 @@ public final class Server {
      * clients and continues it.
      *
      * @throws              IOException if something wrong with input/output
-     * @throws              ClassNotFoundException if class does not exists
      */
 
-    private void start() throws IOException, ClassNotFoundException {
+    private void start() throws IOException {
 
         this.selector = Selector.open();
 
@@ -171,11 +180,9 @@ public final class Server {
      *
      * @param key           a {@code Selection Key}
      * @throws              IOException if something wrong with input/output
-     * @throws              ClassNotFoundException if class does not exists
      */
 
-    private void read(SelectionKey key)
-            throws IOException, ClassNotFoundException {
+    private void read(SelectionKey key) throws IOException {
 
         SocketChannel channel = (SocketChannel) key.channel();
 
@@ -187,13 +194,14 @@ public final class Server {
 
             AbstractCommand command = (AbstractCommand) Deserializer.deserialize(bytes);
 
-            channel.write(ByteBuffer.wrap((command.execute(collection) + "\b").getBytes()));
-            channel.finishConnect();
+            buffer = ByteBuffer.wrap(Serializer.serialize(new StringPack(command.execute(collection))));
+
+            channel.write(buffer);
 
             Server.logger.info(channel.socket().getRemoteSocketAddress() +
                         " | successfully executed <" + command.getName().toUpperCase() + "> command!");
 
-        } catch (IOException e) {
+        } catch (Exception e) {
 
             this.channels.remove(channel);
 

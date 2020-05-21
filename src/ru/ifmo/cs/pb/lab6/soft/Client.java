@@ -14,14 +14,18 @@
  *
  */
 
-package ru.ifmo.cs.pb.lab6.soft.client;
+package ru.ifmo.cs.pb.lab6.soft;
 
 
 
+import ru.ifmo.cs.pb.lab6.soft.source.Deserializer;
+import ru.ifmo.cs.pb.lab6.soft.source.Serializer;
 import ru.ifmo.cs.pb.lab6.soft.source.Commander;
+import ru.ifmo.cs.pb.lab6.soft.source.StringPack;
 import ru.ifmo.cs.pb.lab6.soft.source.command.*;
 import ru.ifmo.cs.pb.lab6.soft.source.objects.*;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -37,9 +41,8 @@ import java.util.Scanner;
  */
 
 public final class Client {
-
     
-    private static Integer PORT = 4004;
+    private static Integer PORT = 40004;
     private static String HOST = "localhost";
 
     private static Socket socket;
@@ -53,7 +56,7 @@ public final class Client {
     /**
      * The {connect()} method tries to connect to any server with it
      * host and port. If host and port don't showed, it will use 
-     * \host:localhost and \port:4004.
+     * \host:localhost and \port:40004.
      * 
      * @param args              an array of Strings
      */
@@ -84,8 +87,6 @@ public final class Client {
         try {
             socket = new Socket(HOST, PORT);
 
-            socket.setSoTimeout(5000);
-
             in_stream = socket.getInputStream();
             out_stream = socket.getOutputStream();
         } catch (IOException e) {
@@ -97,7 +98,7 @@ public final class Client {
     /**
      * The {@code main()} void method begins client!
      * 
-      * @param args             an array of Strings
+     * @param args             an array of Strings
      */    
 
     public static void main(String[] args) {
@@ -132,6 +133,12 @@ public final class Client {
 
             if (Script.scripts.size() != 0) {
 
+                if (Script.scripts.size() > Byte.MAX_VALUE) {
+                    System.out.println("Memory Overflow!");
+                    Script.scripts.clear();
+                    continue;
+                }
+
                 if (!Script.scripts.get(Script.scripts.size()-1).hasNextLine()) {
                     Script.scripts.remove(Script.scripts
                             .get(Script.scripts.size() - 1));
@@ -163,7 +170,7 @@ public final class Client {
             if (args[0].toLowerCase().equals(new Script().getName())) {
                 Script script = new Script();
                 script.setArgs(args);
-                System.out.println(script.execute());
+                System.out.print(script.execute());
                 continue;
             }
 
@@ -236,6 +243,7 @@ public final class Client {
 
         try {
             socket = new Socket(HOST, PORT);
+            socket.setSoTimeout(100);
 
             in_stream = socket.getInputStream();
             out_stream = socket.getOutputStream();
@@ -273,13 +281,21 @@ public final class Client {
 
     private void receive() {
 
-        int checker;
-
         try {
-            while ((checker = in_stream.read()) != (int) '\b')
-                System.out.print((char) checker);
-        } catch (IOException e) {
-            System.out.println("\nConnection lost!");
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+            int readed;
+            byte[] data = new byte[65565];
+
+            readed = in_stream.read(data, 0, data.length);
+            buffer.write(data, 0, readed);
+
+            StringPack stringPack = (StringPack) Deserializer.deserialize(buffer.toByteArray());
+
+            System.out.println(stringPack.getString());
+
+        } catch (IOException | ClassNotFoundException ignored) {
+            System.out.println("Connection failed!");
         }
     }
 }

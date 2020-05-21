@@ -22,6 +22,7 @@ import ru.ifmo.cs.pb.lab6.soft.source.command.Script;
 import ru.ifmo.cs.pb.lab6.soft.source.exception.DifficultyParseException;
 
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Scanner;
 

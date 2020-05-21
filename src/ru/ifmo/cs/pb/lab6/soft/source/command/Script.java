@@ -65,7 +65,7 @@ public class Script extends AbstractCommand {
                         return "List is crowded!";
                     }
 
-        return "Script readed from the file!";
+        return "";
     }
 
     @Override
